@@ -1,0 +1,48 @@
+spring:
+
+  # Virtual Threads (Project Loom) — Java 21+
+  # Cada requisição HTTP e cada task @Async ganham sua própria virtual thread,
+  # eliminando o overhead de pool de threads da plataforma (platform threads).
+  threads:
+    virtual:
+      enabled: true
+
+  # O Docker Compose inicia os containers, mas o datasource é configurado manualmente abaixo
+  docker:
+    compose:
+      lifecycle-management: start-only
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/bank_assistant_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Sao_Paulo
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      # "update" cria/atualiza colunas sem apagar dados — adequado para dev
+      ddl-auto: update
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Realm "bank-assistant" deve ser criado no Keycloak (http://localhost:8080)
+          issuer-uri: http://localhost:8080/realms/bank-assistant
+
+# ----------------------------------------------------------
+# Resilience4j — Retry para operações de persistência MySQL
+# ----------------------------------------------------------
+resilience4j:
+  retry:
+    instances:
+      depositRetry:
+        max-attempts: 3
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        wait-duration: 500ms

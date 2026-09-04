@@ -1,0 +1,67 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.0.5'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id("io.freefair.lombok") version "9.2.0"
+}
+
+group = 'dio'
+version = '0.0.1-SNAPSHOT'
+description = 'budgeting'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    implementation platform("org.springframework.ai:spring-ai-bom:2.0.0-M4")
+    implementation 'org.springframework.ai:spring-ai-starter-model-openai'
+
+    // Web
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // Persistência
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
+    // Cache / Idempotência
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // Segurança — JWT Resource Server (Keycloak)
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+
+    // AOP — necessário para Resilience4j e @Transactional via proxy
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+    // Tolerância a falhas
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.3.0'
+
+    // Mapeamento DTO ↔ Domain via MapStruct
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+
+    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+}
+
+// Garante que o Lombok processa os sources ANTES do MapStruct gerar os mappers
+compileJava {
+    options.compilerArgs += [
+        '-Amapstruct.defaultComponentModel=spring',
+        '-Amapstruct.suppressGeneratorTimestamp=true'
+    ]
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
